@@ -43,6 +43,8 @@ add_executable(Computer_Graphics_Coursework
 	source/coursework.cpp
 	source/vertexShader.glsl
 	source/fragmentShader.glsl
+	source/lightFragmentShader.glsl
+	source/lightVertexShader.glsl
 
 	common/shader.hpp
 	common/texture.hpp
