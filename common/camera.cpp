@@ -57,10 +57,11 @@ void Camera::quaternionCamera(float deltaTime)
     orientation = Maths::SLERP(orientation, newOrientation, 0.2f);
 
     // Calculate the view matrix
-    view = orientation.matrix() * Maths::translate(-eye);
-
-    if (thirdPerson) {
-        view = Maths::translate(offset) * view;
+    if (!thirdPerson) {
+        view = orientation.matrix() * Maths::translate(-eye); 
+    }
+    else {
+        view = Maths::translate(-offset) * orientation.matrix() * Maths::translate(-eye); 
     }
 
     // Calculate the projection matrix

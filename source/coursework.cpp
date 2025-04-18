@@ -100,20 +100,6 @@ int main(void)
     // Activate shader
     glUseProgram(shaderID);
 
-    // Load models
-    Model teapot("../assets/teapot.obj");
-    Model sphere("../assets/sphere.obj");
-
-    // Load the textures
-    teapot.addTexture("../assets/blue.bmp", "diffuse");
-    teapot.addTexture("../assets/diamond_normal.png", "normal");
-
-    // Define teapot object lighting properties
-    teapot.ka = 0.2f;
-    teapot.kd = 0.7f;
-    teapot.ks = 0.6f;
-    teapot.Ns = 20.0f;
-
     // Add light sources
     Light lightSources;
 
@@ -130,9 +116,22 @@ int main(void)
     lightSources.addDirectionalLight(glm::vec3(1.0f, -1.0f, 0.0f),  // direction
         glm::vec3(1.0f, 1.0f, 1.0f));  // colour
 
+    // Load models
+    Model teapot("../assets/teapot.obj"); 
+    Model sphere("../assets/sphere.obj"); 
+
+    // Load the textures
+    teapot.addTexture("../assets/blue.bmp", "diffuse"); 
+    teapot.addTexture("../assets/diamond_normal.png", "normal"); 
+
+    // Define teapot object lighting properties
+    teapot.ka = 0.2f; 
+    teapot.kd = 0.7f; 
+    teapot.ks = 0.6f; 
+    teapot.Ns = 20.0f; 
+
     // Teapot positions
     glm::vec3 teapotPositions[] = {
-        glm::vec3(0.0f,  0.0f,  0.0f),
         glm::vec3(2.0f,  5.0f, -10.0f),
         glm::vec3(-3.0f,  3.0f, -3.0f),
         glm::vec3(-4.0f,  6.0f, -8.0f),
@@ -148,7 +147,7 @@ int main(void)
     std::vector<Object> objects;
     Object object;
     object.name = "teapot";
-    for (unsigned int i = 0; i < 10; i++)
+    for (unsigned int i = 0; i < sizeof(teapotPositions)/sizeof(teapotPositions[0]); i++)
     {
         object.position = teapotPositions[i];
         object.rotation = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -156,6 +155,25 @@ int main(void)
         object.angle = Maths::radians(20.0f * i);
         objects.push_back(object);
     }
+
+    // Load a Suzanne mode
+    Model suzanne("../assets/suzanne.obj"); 
+    suzanne.addTexture("../assets/suzanne_diffuse.png", "diffuse"); 
+    suzanne.addTexture("../assets/suzanne_normal.png", "normal"); 
+
+    // Define Suzanne light properties
+    suzanne.ka = 0.2f; 
+    suzanne.kd = 0.7f;  
+    suzanne.ks = 0.6f; 
+    suzanne.Ns = 20.0f; 
+
+    // Add Suzanne model to objects vector
+    object.position = glm::vec3(0.0f, 0.0f, 0.0f); 
+    object.scale = glm::vec3(0.25f, 0.25f, 0.25f); 
+    object.rotation = glm::vec3(0.0f, 1.0f, 0.0f); 
+    object.angle = 0.0f; 
+    object.name = "suzanne"; 
+    objects.push_back(object); 
 
     // Load a 2D plane model for the floor and add textures
     Model floor("../assets/plane.obj");
@@ -231,15 +249,14 @@ int main(void)
         {
             // Calculate model matrix
             glm::mat4 translate = Maths::translate(objects[i].position);
-            glm::mat4 scale = Maths::scale(glm::vec3(1.0f, 1.0f, 1.0f));
-            glm::mat4 rotate;
+            glm::mat4 scale = Maths::scale(objects[i].scale);
+            glm::mat4 rotate = Maths::rotate(objects[i].angle, objects[i].rotation);
             if (objects[i].name == "teapot") {
                 rotate = Maths::rotate(objects[i].angle * glfwGetTime(), objects[i].rotation);
-                scale += Maths::scale(objects[i].scale);
             }
-            else {
-                rotate = Maths::rotate(objects[i].angle, objects[i].rotation);
-                scale = Maths::scale(objects[i].scale);
+            else if (objects[i].name == "suzanne") {
+                translate = Maths::translate(camera.eye);
+                rotate = Maths::rotate(-camera.yaw, glm::vec3(0.0f, 1.0f, 0.0f)) * Maths::rotate(camera.pitch, glm::vec3(1.0f, 0.0f, 0.0f));
             }
             glm::mat4 model = translate * rotate * scale;
 
@@ -252,6 +269,9 @@ int main(void)
             // Draw the model
             if (objects[i].name == "teapot")
                 teapot.draw(shaderID);
+
+            if(objects[i].name == "suzanne")
+                suzanne.draw(shaderID);
 
             if (objects[i].name == "floor")
                 floor.draw(shaderID);
@@ -269,9 +289,6 @@ int main(void)
     }
 
     // Cleanup
-    teapot.deleteBuffers();
-    floor.deleteBuffers();
-    wall.deleteBuffers();
     glDeleteProgram(shaderID);
 
     // Close OpenGL window and terminate GLFW

@@ -27,7 +27,13 @@ glm::mat4 Maths::rotate(const float angle, glm::vec3& v)
 }
 
 // Quaternions
-Quaternion::Quaternion() {}
+Quaternion::Quaternion() 
+{
+    this->w = 0.0f;
+    this->x = 0.0f;
+    this->y = 0.0f;
+    this->z = 0.0f;
+}
 
 Quaternion::Quaternion(const float w, const float x, const float y, const float z)
 {
