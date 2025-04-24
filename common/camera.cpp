@@ -20,15 +20,15 @@ void Camera::calculateMatrices(float deltaTime)
             jumpTimer = jumpTime;
         }
     }
-    view = glm::lookAt(eye, eye + front, worldUp);
-    projection = glm::perspective(fov, aspect, near, far);
+    view = Maths::lookAt(eye, eye + front, worldUp);
+    projection = Maths::perspective(fov, aspect, near, far);
 }
 
 void Camera::calculateCameraVectors()
 {
     front = glm::vec3(cos(yaw) * cos(pitch), sin(pitch), sin(yaw) * cos(pitch));
-    right = glm::normalize(glm::cross(front, worldUp));
-    up = glm::cross(right, front);
+    right = Maths::normalise(Maths::cross(front, worldUp));
+    up = Maths::cross(right, front);
 }
 
 void Camera::jump() {
@@ -65,7 +65,7 @@ void Camera::quaternionCamera(float deltaTime)
     }
 
     // Calculate the projection matrix
-    projection = glm::perspective(fov, aspect, near, far);
+    projection = Maths::perspective(fov, aspect, near, far);
 
     // Calculate camera vectors from view matrix
     right = glm::vec3(view[0][0], view[1][0], view[2][0]);

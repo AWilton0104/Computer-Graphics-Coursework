@@ -30,5 +30,23 @@ public:
 	static glm::mat4 rotate(const float angle, glm::vec3& v);
 
 	static Quaternion SLERP(const Quaternion q1, const Quaternion q2, const float t);
+	 
+	//Students own implementation of GLM functions 
+
+	static float magnitude(const glm::vec3& v); 
+
+	static float dot(const glm::vec3& v1, const glm::vec3& v2);
+
+	static glm::vec3 cross(const glm::vec3& v1, const glm::vec3& v2);
+
+	static glm::vec3 normalise(const glm::vec3& v);
+
+	static glm::mat4 transpose(const glm::mat4 m);
+
+	//Students own implementation of view and projection matricies 
+
+	static glm::mat4 lookAt(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3);
+
+	static glm::mat4 perspective(float near, float far, float fov, float aspect);
 };
 

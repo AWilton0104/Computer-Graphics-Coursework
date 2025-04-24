@@ -18,12 +18,57 @@ float Maths::radians(float degrees) {
 
 glm::mat4 Maths::rotate(const float angle, glm::vec3& v)
 {
-    v = glm::normalize(v);
+    v = Maths::normalise(v);
     float c = cos(0.5f * angle);
     float s = sin(0.5f * angle);
     Quaternion q(c, s * v.x, s * v.y, s * v.z);
 
     return q.matrix();
+}
+
+//Students own implementation of GLM functions 
+
+float Maths::magnitude(const glm::vec3& v)
+{
+    return sqrt((v.x * v.x) + (v.y * v.y) + (v.z + v.z));
+}
+
+float Maths::dot(const glm::vec3& v1, const glm::vec3& v2)
+{
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+
+glm::vec3 Maths::cross(const glm::vec3& v1, const glm::vec3& v2)
+{
+    return glm::vec3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
+}
+
+glm::vec3 Maths::normalise(const glm::vec3& v)
+{
+    float mag = Maths::magnitude(v);
+    return glm::vec3(v.x / mag, v.y / mag, v.z / mag);
+}
+
+glm::mat4 Maths::transpose(const glm::mat4 m) 
+{
+    return glm::mat4(m[0][0],m[1][0],m[2][0],m[3][0],m[0][1],m[1][1],m[2][1],m[3][1],m[0][2],m[1][2],m[2][2],m[3][3],m[0][3],m[1][3],m[2][3],m[3][3]);
+}
+
+//Students own implementation of view and projection matricies 
+
+glm::mat4 Maths::lookAt(const glm::vec3& eye, const glm::vec3& target, const glm::vec3& worldUp)
+{
+    glm::vec3 front = Maths::normalise(target - eye);
+    glm::vec3 right = Maths::normalise(Maths::cross(front, worldUp));
+    glm::vec3 up = Maths::cross(right, front);
+    return glm::mat4(right.x, up.x, -front.x, 0, right.y, up.y, -front.y, 0, right.z, up.z, -front.z, 0, -Maths::dot(eye, right), -Maths::dot(eye, up), Maths::dot(eye, front), 1);
+}
+
+glm::mat4 Maths::perspective(float fov, float aspect, float near, float far)
+{
+    float top = near * tan(fov / 2);
+    float right = aspect * top;
+    return glm::mat4(near / right, 0, 0, 0, 0, near / top, 0, 0, 0, 0, -(far + near) / (far - near), -1, 0, 0, -(2 * far * near) / (far - near), 0);
 }
 
 // Quaternions
