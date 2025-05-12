@@ -50,7 +50,15 @@ void Camera::quaternionCamera(float deltaTime)
         }
     }
 
+    if (pitch > 3.141592165358979f / 2) {
+        pitch = 3.141592165358979f / 2;
+    }
+    else if (pitch < -3.141592165358979f / 2) {
+        pitch = -3.141592165358979f / 2;
+    }
+
     // Calculate camera orientation quaternion from the Euler angles
+
     Quaternion newOrientation(-pitch, yaw);
 
     // Apply SLERP

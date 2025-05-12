@@ -18,6 +18,7 @@ void mouseInput(GLFWwindow* window);
 // Frame timers
 float previousTime = 0.0f;  // time of previous iteration of the loop
 float deltaTime = 0.0f;  // time elapsed since the previous frame
+float teapotSize = 0.8f; // Used for collisions with teapot
 
 bool thirdPerson = false;
 
@@ -82,7 +83,7 @@ int main(void)
     glEnable(GL_DEPTH_TEST);
 
     // Use back face culling
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
 
     // Ensure we can capture keyboard inputs
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
@@ -103,8 +104,8 @@ int main(void)
     // Add light sources
     Light lightSources;
 
-    lightSources.addPointLight(glm::vec3(1.0f, 8.0f, -8.0f),        // position
-        glm::vec3(1.0f, 1.0f, 1.0f),         // colour
+    lightSources.addPointLight(glm::vec3(0.0f, 0.0f, 0.0f),        // position
+        glm::vec3(1.0f, 0.0f, 1.0f),         // colour
         1.0f, 0.1f, 0.02f);                  // attenuation
 
     lightSources.addSpotLight(glm::vec3(0.0f, 8.0f, 0.0f),          // position
@@ -113,7 +114,7 @@ int main(void)
         1.0f, 0.1f, 0.02f,                    // attenuation
         std::cos(Maths::radians(45.0f)));     // cos(phi)
 
-    lightSources.addDirectionalLight(glm::vec3(1.0f, -1.0f, 0.0f),  // direction
+    lightSources.addDirectionalLight(glm::vec3(0.0f, -1.0f, 0.0f),  // direction
         glm::vec3(1.0f, 1.0f, 1.0f));  // colour
 
     // Load models
@@ -132,15 +133,19 @@ int main(void)
 
     // Teapot positions
     glm::vec3 teapotPositions[] = {
-        glm::vec3(2.0f,  5.0f, -10.0f),
+        glm::vec3(0.0f,  0.0f,  0.0f),
         glm::vec3(-3.0f,  3.0f, -3.0f),
-        glm::vec3(-4.0f,  6.0f, -8.0f),
+        glm::vec3(-4.0f,  5.0f, -8.0f),
         glm::vec3(2.0f,  2.0f, -6.0f),
-        glm::vec3(-4.0f,  3.0f, -8.0f),
-        glm::vec3(0.0f,  7.0f, -5.0f),
-        glm::vec3(4.0f,  2.0f, -4.0f),
-        glm::vec3(2.0f,  9.0f, -2.0f),
-        glm::vec3(-1.0f,  1.0f, -2.0f)
+        glm::vec3(3.0f,  3.0f, 3.0f),
+        glm::vec3(0.0f,  5.0f, -5.0f),
+        glm::vec3(8.0f,  2.0f, -4.0f),
+        glm::vec3(2.0f,  4.0f, -2.0f),
+        glm::vec3(-8.0f,  1.0f, -2.0f),
+        glm::vec3(0.0f,  5.0f, 5.0f),
+        glm::vec3(8.0f,  2.0f, 4.0f),
+        glm::vec3(2.0f,  4.0f, 2.0f),
+        glm::vec3(-8.0f,  1.0f, 2.0f)
     };
 
     // Add teapots to objects vector
@@ -207,12 +212,25 @@ int main(void)
     wall.ks = 1.0f;
     wall.Ns = 20.0f;
 
-    // Add wall model to objects vector
-    object.position = glm::vec3(0.0f, 4.0f, -5.0f);
-    object.scale = glm::vec3(1.0f, 1.0f, 1.0f);
-    object.rotation = glm::vec3(1.0f, 0.0f, 0.0f);
-    object.angle = Maths::radians(90.0f);
+    // Add walls model to objects vector
     object.name = "wall";
+    object.scale = glm::vec3(1.0f, 1.0f, 1.0f);
+    object.angle = Maths::radians(90.0f);
+
+    object.position = glm::vec3(-10.0f, 0.0f, 0.0f);
+    object.rotation = glm::vec3(0.0f, 0.0f, 1.0f);
+    objects.push_back(object);
+
+    object.position = glm::vec3(10.0f, 0.0f, 0.0f);
+    object.rotation = glm::vec3(0.0f, 0.0f, 1.0f); 
+    objects.push_back(object);
+
+    object.position = glm::vec3(0.0f, 0.0f, 10.0f);
+    object.rotation = glm::vec3(1.0f, 0.0f, 0.0f);
+    objects.push_back(object);
+
+    object.position = glm::vec3(0.0f, 0.0f, -10.0f);
+    object.rotation = glm::vec3(1.0f, 0.0f, 0.0f);
     objects.push_back(object);
 
     // Render loop
@@ -228,7 +246,7 @@ int main(void)
         mouseInput(window);
 
         // Clear the window
-        glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
+        glClearColor(0.0f, 0.f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Calculate view and projection matrices
@@ -238,11 +256,25 @@ int main(void)
         // Activate shader
         glUseProgram(shaderID);
 
-        // Send light source properties to the shader
-        lightSources.toShader(shaderID, camera.view);
-
         // Send view matrix to the shader
         glUniformMatrix4fv(glGetUniformLocation(shaderID, "V"), 1, GL_FALSE, &camera.view[0][0]);
+
+        // Send light source properties to the shader
+        lightSources.toShader(shaderID, camera.view); 
+
+        if (camera.eye.x > 9.8f) {
+            camera.eye.x = 9.8f;
+        }
+        else if (camera.eye.x < -9.8f) {
+            camera.eye.x = -9.8f;
+        }
+
+        if (camera.eye.z > 9.8f) {
+            camera.eye.z = 9.8f;
+        }
+        else if (camera.eye.z < -9.8f) {
+            camera.eye.z = -9.8f;
+        }
 
         // Loop through objects
         for (unsigned int i = 0; i < static_cast<unsigned int>(objects.size()); i++)
@@ -253,8 +285,14 @@ int main(void)
             glm::mat4 rotate = Maths::rotate(objects[i].angle, objects[i].rotation);
             if (objects[i].name == "teapot") {
                 rotate = Maths::rotate(objects[i].angle * glfwGetTime(), objects[i].rotation);
+                if (Maths::magnitude(camera.eye - objects[i].position) < teapotSize) {
+                    camera.eye = objects[i].position + Maths::normalise(camera.eye - objects[i].position) * teapotSize;
+                }
             }
             else if (objects[i].name == "suzanne") {
+                if (!camera.thirdPerson) {
+                    continue;
+                }
                 translate = Maths::translate(camera.eye);
                 rotate = Maths::rotate(-camera.yaw, glm::vec3(0.0f, 1.0f, 0.0f)) * Maths::rotate(camera.pitch, glm::vec3(1.0f, 0.0f, 0.0f));
             }
@@ -280,15 +318,13 @@ int main(void)
                 wall.draw(shaderID);
         }
 
-        // Draw light sources
-        lightSources.draw(lightShaderID, camera.view, camera.projection, sphere);
-
         // Swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     // Cleanup
+    teapot.deleteBuffers();
     glDeleteProgram(shaderID);
 
     // Close OpenGL window and terminate GLFW
