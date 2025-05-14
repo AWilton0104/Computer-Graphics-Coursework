@@ -19,8 +19,14 @@ void mouseInput(GLFWwindow* window);
 float previousTime = 0.0f;  // time of previous iteration of the loop
 float deltaTime = 0.0f;  // time elapsed since the previous frame
 float teapotSize = 0.8f; // Used for collisions with teapot
+float teapotRotation = 0.0f;
+float teapotScale = 1.0f;
 
-bool thirdPerson = false;
+int state = 0;
+glm::vec3 state1 = glm::vec3(9.0f, 0.5f, 9.0f);
+glm::vec3 state2 = glm::vec3(9.0f, 0.5f, -9.0f);
+glm::vec3 state3 = glm::vec3(-9.0f, 0.5f, 9.0f);
+glm::vec3 state4 = glm::vec3(-9.0f, 0.5f, -9.0f);
 
 // Create camera object
 Camera camera(glm::vec3(0.0f, 0.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f));
@@ -57,7 +63,7 @@ int main(void)
 
     // Open a window and create its OpenGL context
     GLFWwindow* window;
-    window = glfwCreateWindow(1024, 768, "Lab09 Normal Maps", NULL, NULL);
+    window = glfwCreateWindow(1024, 768, "A_Wilton Coursework", NULL, NULL);
 
     if (window == NULL) {
         fprintf(stderr, "Failed to open GLFW window.\n");
@@ -105,14 +111,14 @@ int main(void)
     Light lightSources;
 
     lightSources.addPointLight(glm::vec3(0.0f, 0.0f, 0.0f),        // position
-        glm::vec3(1.0f, 0.0f, 1.0f),         // colour
+        glm::vec3(1.0f, 1.0f, 1.0f),         // colour
         1.0f, 0.1f, 0.02f);                  // attenuation
 
     lightSources.addSpotLight(glm::vec3(0.0f, 8.0f, 0.0f),          // position
         glm::vec3(0.0f, -1.0f, 0.0f),         // direction
-        glm::vec3(1.0f, 1.0f, 1.0f),          // colour
+        glm::vec3(1.0f, 0.0f, 1.0f),          // colour
         1.0f, 0.1f, 0.02f,                    // attenuation
-        std::cos(Maths::radians(45.0f)));     // cos(phi)
+        std::cos(Maths::radians(180.0f)));     // cos(phi)
 
     lightSources.addDirectionalLight(glm::vec3(0.0f, -1.0f, 0.0f),  // direction
         glm::vec3(1.0f, 1.0f, 1.0f));  // colour
@@ -156,7 +162,7 @@ int main(void)
     {
         object.position = teapotPositions[i];
         object.rotation = glm::vec3(1.0f, 1.0f, 1.0f);
-        object.scale = glm::vec3(0.25f, 0.25f, 0.25f);
+        object.scale = glm::vec3(0.75f, 0.75f, 0.75f);
         object.angle = Maths::radians(20.0f * i);
         objects.push_back(object);
     }
@@ -259,9 +265,6 @@ int main(void)
         // Send view matrix to the shader
         glUniformMatrix4fv(glGetUniformLocation(shaderID, "V"), 1, GL_FALSE, &camera.view[0][0]);
 
-        // Send light source properties to the shader
-        lightSources.toShader(shaderID, camera.view); 
-
         if (camera.eye.x > 9.8f) {
             camera.eye.x = 9.8f;
         }
@@ -276,6 +279,15 @@ int main(void)
             camera.eye.z = -9.8f;
         }
 
+        if (Maths::magnitude(camera.eye - state1) < 2.0f) { state = 1; }
+        else if (Maths::magnitude(camera.eye - state2) < 2.0f) { state = 2; }
+        else if (Maths::magnitude(camera.eye - state3) < 2.0f) { state = 3; }
+        else if (Maths::magnitude(camera.eye - state4) < 2.0f) { state = 4; }
+        else { state = 0; }
+
+        // Send light source properties to the shader
+        lightSources.toShader(shaderID, camera.view, state, deltaTime); 
+
         // Loop through objects
         for (unsigned int i = 0; i < static_cast<unsigned int>(objects.size()); i++)
         {
@@ -284,7 +296,14 @@ int main(void)
             glm::mat4 scale = Maths::scale(objects[i].scale);
             glm::mat4 rotate = Maths::rotate(objects[i].angle, objects[i].rotation);
             if (objects[i].name == "teapot") {
-                rotate = Maths::rotate(objects[i].angle * glfwGetTime(), objects[i].rotation);
+                rotate = Maths::rotate(objects[i].angle * teapotRotation, objects[i].rotation);
+                scale = Maths::scale(objects[i].scale * cos(teapotScale)); 
+                if (state == 1) {
+                    teapotRotation += deltaTime/4;
+                }
+                else if (state == 2) {
+                    teapotScale += deltaTime/4;
+                }
                 if (Maths::magnitude(camera.eye - objects[i].position) < teapotSize) {
                     camera.eye = objects[i].position + Maths::normalise(camera.eye - objects[i].position) * teapotSize;
                 }

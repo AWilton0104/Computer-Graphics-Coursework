@@ -1,4 +1,5 @@
 #include <common/light.hpp>
+#include <iostream>
 
 void Light::addPointLight(const glm::vec3 position, const glm::vec3 colour,
     const float constant, const float linear,
@@ -40,13 +41,31 @@ void Light::addDirectionalLight(const glm::vec3 direction, const glm::vec3 colou
     lightSources.push_back(light);
 }
 
-void Light::toShader(unsigned int shaderID, glm::mat4 view)
+void Light::toShader(unsigned int shaderID, glm::mat4 view, int state, float deltaTime)
 {
     unsigned int numLights = static_cast<unsigned int>(lightSources.size());
     glUniform1i(glGetUniformLocation(shaderID, "numLights"), numLights);
 
     for (unsigned int i = 0; i < numLights; i++)
     {
+        if (state == 3) {
+            lightSources[i].colour = glm::vec3(0.0f,1.0f,0.0f);
+        }
+        else if (state == 4) {
+            time += deltaTime;
+            if (time > 2.0f) {
+                lightSources[i].colour = glm::vec3(1.0f, 0.0f, 0.0f);
+            }
+            else {
+                lightSources[i].colour = glm::vec3(0.0f, 0.0f, 1.0f);
+            }
+            if (time > 4.0f) {
+                time = 0.0f;
+            }
+        }
+        else {
+            lightSources[i].colour = glm::vec3(1.0f, 1.0f, 1.0f);
+        }
         std::string idx = std::to_string(i);
         glm::vec3 VSLightPosition = glm::vec3(view * glm::vec4(lightSources[i].position, 1.0f));
         glm::vec3 VSLightDirection = glm::vec3(view * glm::vec4(lightSources[i].direction, 0.0f));
